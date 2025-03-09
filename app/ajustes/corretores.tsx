@@ -287,7 +287,7 @@ export default function Corretores() {
                                     <FormItem>
                                         <FormLabel>Nome</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Nome" />
+                                            <Input {...field} placeholder="Nome" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -300,7 +300,7 @@ export default function Corretores() {
                                     <FormItem>
                                         <FormLabel>Email</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Email" />
+                                            <Input {...field} placeholder="Email" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -313,7 +313,7 @@ export default function Corretores() {
                                     <FormItem>
                                         <FormLabel>Endereço</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Endereço" />
+                                            <Input {...field} placeholder="Endereço" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -327,7 +327,7 @@ export default function Corretores() {
                                         <FormItem>
                                             <FormLabel>Fone</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Fone" />
+                                                <Input {...field} placeholder="Fone" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -340,7 +340,7 @@ export default function Corretores() {
                                         <FormItem>
                                             <FormLabel>Data Admissão</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Data Admissão" ref={dataAdmissaoRef} />
+                                                <Input {...field} placeholder="Data Admissão" ref={dataAdmissaoRef} autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

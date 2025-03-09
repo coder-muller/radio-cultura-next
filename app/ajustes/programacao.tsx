@@ -309,7 +309,7 @@ export default function Programacao() {
                                     <FormItem>
                                         <FormLabel>Programa</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Nome do programa" />
+                                            <Input {...field} placeholder="Nome do programa" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -322,7 +322,7 @@ export default function Programacao() {
                                     <FormItem>
                                         <FormLabel>Apresentador</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Nome do apresentador" />
+                                            <Input {...field} placeholder="Nome do apresentador" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -336,7 +336,7 @@ export default function Programacao() {
                                         <FormItem>
                                             <FormLabel>Hora Início</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Hora de início" ref={horaInicioRef} />
+                                                <Input {...field} placeholder="Hora de início" ref={horaInicioRef} autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -349,7 +349,7 @@ export default function Programacao() {
                                         <FormItem>
                                             <FormLabel>Hora Fim</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Hora de fim" ref={horaFimRef} />
+                                                <Input {...field} placeholder="Hora de fim" ref={horaFimRef} autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -363,7 +363,7 @@ export default function Programacao() {
                                     <FormItem>
                                         <FormLabel>Dias de Apresentação</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Dias de apresentação" />
+                                            <Input {...field} placeholder="Dias de apresentação" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -377,7 +377,7 @@ export default function Programacao() {
                                         <FormItem>
                                             <FormLabel>Valor Patrocínio</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Valor do patrocínio" type="text" />
+                                                <Input {...field} placeholder="Valor do patrocínio" type="text" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -390,7 +390,7 @@ export default function Programacao() {
                                         <FormItem>
                                             <FormLabel>Estilo</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Estilo do programa" />
+                                                <Input {...field} placeholder="Estilo do programa" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

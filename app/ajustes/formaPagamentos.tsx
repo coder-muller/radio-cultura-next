@@ -251,7 +251,7 @@ export default function FormaPagamentos() {
                                     <FormItem>
                                         <FormLabel>Forma de Pagamento</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Nome da forma de pagamento" />
+                                            <Input {...field} placeholder="Nome da forma de pagamento" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

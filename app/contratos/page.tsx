@@ -264,6 +264,7 @@ export default function Contratos() {
                             formaPagamentoId: parsedData.formaPagamentoId,
                             descritivo: parsedData.descritivo,
                             corretoresId: parsedData.corretorId,
+                            comissao: parsedData.comissao,
                             chave: token
                         }
                         await sendPut('/faturamento/' + invoice.id, updatedInvoiceData)
@@ -435,7 +436,7 @@ export default function Contratos() {
                         diaVencimento: '',
                         formaPagamentoId: '',
                         comissao: '',
-                        status: 'Ativo',
+                        status: 'ativo',
                         corretorId: '',
                         descritivo: ''
                     })
@@ -675,7 +676,7 @@ export default function Contratos() {
                                         <FormItem>
                                             <FormLabel>Data Emissão</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Data de emissão" ref={dataEmissaoRef} />
+                                                <Input {...field} placeholder="Data de emissão" ref={dataEmissaoRef} autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -688,7 +689,7 @@ export default function Contratos() {
                                         <FormItem>
                                             <FormLabel>Data Vencimento</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Data de vencimento" ref={dataVencimentoRef} />
+                                                <Input {...field} placeholder="Data de vencimento" ref={dataVencimentoRef} autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -701,7 +702,7 @@ export default function Contratos() {
                                         <FormItem>
                                             <FormLabel>Número de Inserções</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Número de inserções" />
+                                                <Input {...field} placeholder="Número de inserções" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -716,7 +717,7 @@ export default function Contratos() {
                                         <FormItem>
                                             <FormLabel>Valor</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Valor" />
+                                                <Input {...field} placeholder="Valor" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -729,7 +730,7 @@ export default function Contratos() {
                                         <FormItem>
                                             <FormLabel>Dia do Vencimento</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Dia do vencimento" />
+                                                <Input {...field} placeholder="Dia do vencimento" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -768,7 +769,7 @@ export default function Contratos() {
                                         <FormItem>
                                             <FormLabel>Comissão (%)</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Comissão" />
+                                                <Input {...field} placeholder="Comissão" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -827,7 +828,7 @@ export default function Contratos() {
                                     <FormItem>
                                         <FormLabel>Descrição</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Descrição" />
+                                            <Input {...field} placeholder="Descrição" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

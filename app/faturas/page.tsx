@@ -239,6 +239,15 @@ export default function Faturas() {
                             {filteredFaturas.length > 0 ? (
                                 filteredFaturas
                                     .sort((a, b) => {
+                                        // First compare by dataVencimento
+                                        const dataVencimentoA = a.dataVencimento ? new Date(a.dataVencimento) : new Date();
+                                        const dataVencimentoB = b.dataVencimento ? new Date(b.dataVencimento) : new Date();
+                                        
+                                        // If dates are different, sort by date
+                                        const dateComparison = dataVencimentoA.getTime() - dataVencimentoB.getTime();
+                                        if (dateComparison !== 0) return dateComparison;
+                                        
+                                        // If dates are equal, sort by nomeFantasia
                                         const nomeFantasiaA = a.cliente?.nomeFantasia?.toLowerCase() || '';
                                         const nomeFantasiaB = b.cliente?.nomeFantasia?.toLowerCase() || '';
                                         return nomeFantasiaA.localeCompare(nomeFantasiaB);

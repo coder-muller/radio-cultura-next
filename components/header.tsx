@@ -170,7 +170,7 @@ export default function Header() {
                             Importando...
                         </Button>
                     ) : (
-                        <Button variant="outline" onClick={handleImportClick}>
+                        <Button variant="outline" className="hidden" onClick={handleImportClick}>
                             Importar XML
                         </Button>
                     )}

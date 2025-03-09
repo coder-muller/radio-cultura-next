@@ -370,7 +370,7 @@ export default function Clientes() {
                                     <FormItem>
                                         <FormLabel>Razão Social</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Razão Social" />
+                                            <Input {...field} placeholder="Razão Social" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -383,7 +383,7 @@ export default function Clientes() {
                                     <FormItem>
                                         <FormLabel>Nome Fantasia</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Nome Fantasia" />
+                                            <Input {...field} placeholder="Nome Fantasia" autoComplete="off" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -397,7 +397,7 @@ export default function Clientes() {
                                         <FormItem>
                                             <FormLabel>Contato</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Contato" />
+                                                <Input {...field} placeholder="Contato" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -410,7 +410,7 @@ export default function Clientes() {
                                         <FormItem>
                                             <FormLabel>Inscrição Municipal</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Inscrição Municipal" />
+                                                <Input {...field} placeholder="Inscrição Municipal" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -425,7 +425,7 @@ export default function Clientes() {
                                         <FormItem>
                                             <FormLabel>CPF</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="CPF" ref={cpfRef} />
+                                                <Input {...field} placeholder="CPF" ref={cpfRef} autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -438,7 +438,7 @@ export default function Clientes() {
                                         <FormItem>
                                             <FormLabel>CNPJ</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="CNPJ" ref={cnpjRef} />
+                                                <Input {...field} placeholder="CNPJ" ref={cnpjRef} autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -454,7 +454,7 @@ export default function Clientes() {
                                             <FormItem>
                                                 <FormLabel>Endereço</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} placeholder="Endereço" />
+                                                    <Input {...field} placeholder="Endereço" autoComplete="off" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -468,7 +468,7 @@ export default function Clientes() {
                                         <FormItem>
                                             <FormLabel>N°</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="N°" />
+                                                <Input {...field} placeholder="N°" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -483,7 +483,7 @@ export default function Clientes() {
                                         <FormItem>
                                             <FormLabel>Bairro</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Bairro" />
+                                                <Input {...field} placeholder="Bairro" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -496,7 +496,7 @@ export default function Clientes() {
                                         <FormItem>
                                             <FormLabel>Cidade</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="Cidade" />
+                                                <Input {...field} placeholder="Cidade" autoComplete="off" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -512,7 +512,7 @@ export default function Clientes() {
                                             <FormItem>
                                                 <FormLabel>Estado</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} placeholder="Estado" />
+                                                    <Input {...field} placeholder="Estado" autoComplete="off" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -527,7 +527,7 @@ export default function Clientes() {
                                             <FormItem>
                                                 <FormLabel>CEP</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} placeholder="CEP" ref={cepRef} />
+                                                    <Input {...field} placeholder="CEP" ref={cepRef} autoComplete="off" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -542,7 +542,7 @@ export default function Clientes() {
                                             <FormItem>
                                                 <FormLabel>Fone</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} placeholder="Fone" />
+                                                    <Input {...field} placeholder="Fone" autoComplete="off" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
