@@ -2,7 +2,8 @@
  * Utility functions for API requests
  */
 
-const BASE_URL = 'http://localhost:5000'
+// const BASE_URL = 'http://localhost:5000'
+const BASE_URL = 'https://radio-cultura.cgmcloud.com.br'
 
 type RequestOptions = {
   headers?: Record<string, string>;
