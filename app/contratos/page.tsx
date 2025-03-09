@@ -466,6 +466,9 @@ export default function Contratos() {
                         <TableBody>
                             {filteredContratos.length > 0 ? (
                                 filteredContratos
+                                    .sort((a, b) => {
+                                        return a.diaVencimento && b.diaVencimento ? parseInt(a.diaVencimento.toString()) - parseInt(b.diaVencimento.toString()) : 0
+                                    })
                                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                                     .map((contrato) => (
                                         <TableRow key={contrato.id}>
