@@ -201,7 +201,7 @@ export default function Comissoes() {
                 </Button>
             </div>
 
-            <ScrollArea className="h-[calc(100vh-22rem)] max-h-[calc(100vh-22rem)] mt-4">
+            <ScrollArea className="h-[calc(100vh-22rem)] max-h-[calc(100vh-22rem)] mt-2">
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>
