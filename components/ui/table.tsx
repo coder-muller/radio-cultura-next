@@ -65,16 +65,52 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+function TableHead({ 
+  className, 
+  onClick,
+  sortable = false,
+  sortDirection,
+  ...props 
+}: React.ComponentProps<"th"> & { 
+  sortable?: boolean;
+  sortDirection?: 'asc' | 'desc' | null;
+  onClick?: () => void;
+}) {
   return (
     <th
       data-slot="table-head"
       className={cn(
         "text-muted-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        sortable && "cursor-pointer select-none hover:bg-muted/50",
         className
       )}
+      onClick={onClick}
       {...props}
-    />
+    >
+      <div className="flex items-center gap-1">
+        {props.children}
+        {sortable && (
+          <span className="inline-flex">
+            {!sortDirection && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 h-4 w-4 text-muted-foreground/70">
+                <path d="m7 15 5 5 5-5"/>
+                <path d="m7 9 5-5 5 5"/>
+              </svg>
+            )}
+            {sortDirection === 'asc' && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 h-4 w-4">
+                <path d="m7 15 5 5 5-5"/>
+              </svg>
+            )}
+            {sortDirection === 'desc' && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 h-4 w-4">
+                <path d="m7 9 5-5 5 5"/>
+              </svg>
+            )}
+          </span>
+        )}
+      </div>
+    </th>
   )
 }
 
@@ -105,12 +141,7 @@ function TableCaption({
 }
 
 export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableCaption,
+    Table, TableBody, TableCaption, TableCell, TableFooter,
+    TableHead, TableHeader, TableRow
 }
+

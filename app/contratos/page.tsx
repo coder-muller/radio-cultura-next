@@ -69,6 +69,8 @@ export default function Contratos() {
     const [selectedContrato, setSelectedContrato] = useState<Contrato | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 8
+    const [sortColumn, setSortColumn] = useState<string | null>(null)
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null)
 
     const dataEmissaoRef = useRef<HTMLInputElement>(null)
     const dataVencimentoRef = useRef<HTMLInputElement>(null)
@@ -334,6 +336,79 @@ export default function Contratos() {
             return false;
         });
 
+    const sortedContratos = () => {
+        if (!sortColumn || !sortDirection) {
+            return filteredContratos
+                .sort((a, b) => {
+                    return a.diaVencimento && b.diaVencimento ? 
+                        parseInt(a.diaVencimento.toString()) - parseInt(b.diaVencimento.toString()) : 0
+                })
+                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+        }
+        
+        return [...filteredContratos]
+            .sort((a, b) => {
+                if (sortColumn === 'cliente') {
+                    const valA = a.cliente?.nomeFantasia?.toLowerCase() || '';
+                    const valB = b.cliente?.nomeFantasia?.toLowerCase() || '';
+                    return sortDirection === 'asc' 
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'programa') {
+                    const valA = a.programacao?.programa?.toLowerCase() || '';
+                    const valB = b.programacao?.programa?.toLowerCase() || '';
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'dataEmissao') {
+                    const valA = a.dataEmissao ? new Date(a.dataEmissao).getTime() : 0;
+                    const valB = b.dataEmissao ? new Date(b.dataEmissao).getTime() : 0;
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'diaVencimento') {
+                    const valA = a.diaVencimento ? parseInt(a.diaVencimento.toString()) : 0;
+                    const valB = b.diaVencimento ? parseInt(b.diaVencimento.toString()) : 0;
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'dataVencimento') {
+                    const valA = a.dataVencimento ? new Date(a.dataVencimento).getTime() : 0;
+                    const valB = b.dataVencimento ? new Date(b.dataVencimento).getTime() : 0;
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'valor') {
+                    const valA = a.valor ? parseFloat(a.valor.toString()) : 0;
+                    const valB = b.valor ? parseFloat(b.valor.toString()) : 0;
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'status') {
+                    const valA = a.status?.toLowerCase() || '';
+                    const valB = b.status?.toLowerCase() || '';
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                return 0;
+            })
+            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    }
+
     async function geraFaturaIndividual(data: z.infer<typeof configSchema>) {
         setIsLoading(true)
 
@@ -406,6 +481,22 @@ export default function Contratos() {
         }
     }
 
+    const toggleSort = (column: string) => {
+        if (sortColumn === column) {
+            if (sortDirection === 'asc') {
+                setSortDirection('desc')
+            } else if (sortDirection === 'desc') {
+                setSortColumn(null)
+                setSortDirection(null)
+            } else {
+                setSortDirection('asc')
+            }
+        } else {
+            setSortColumn(column)
+            setSortDirection('asc')
+        }
+    }
+
     return (
         <>
             <div className="my-4">
@@ -458,13 +549,55 @@ export default function Contratos() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Programa</TableHead>
-                                <TableHead>Data Emissão</TableHead>
-                                <TableHead>Dia Pagamento</TableHead>
-                                <TableHead>Data Vencimento</TableHead>
-                                <TableHead>Valor</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'cliente' ? sortDirection : null}
+                                    onClick={() => toggleSort('cliente')}
+                                >
+                                    Cliente
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'programa' ? sortDirection : null}
+                                    onClick={() => toggleSort('programa')}
+                                >
+                                    Programa
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'dataEmissao' ? sortDirection : null}
+                                    onClick={() => toggleSort('dataEmissao')}
+                                >
+                                    Data Emissão
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'diaVencimento' ? sortDirection : null}
+                                    onClick={() => toggleSort('diaVencimento')}
+                                >
+                                    Dia Pagamento
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'dataVencimento' ? sortDirection : null}
+                                    onClick={() => toggleSort('dataVencimento')}
+                                >
+                                    Data Vencimento
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'valor' ? sortDirection : null}
+                                    onClick={() => toggleSort('valor')}
+                                >
+                                    Valor
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'status' ? sortDirection : null}
+                                    onClick={() => toggleSort('status')}
+                                >
+                                    Status
+                                </TableHead>
                                 <TableHead className="w-[100px] text-center">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -480,12 +613,7 @@ export default function Contratos() {
                                 </TableRow>
                             ) : (
                                 filteredContratos.length > 0 ? (
-                                    filteredContratos
-                                    .sort((a, b) => {
-                                        return a.diaVencimento && b.diaVencimento ? parseInt(a.diaVencimento.toString()) - parseInt(b.diaVencimento.toString()) : 0
-                                    })
-                                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                                    .map((contrato) => (
+                                    sortedContratos().map((contrato) => (
                                         <TableRow key={contrato.id}>
                                             <TableCell className="font-medium">{contrato.cliente?.nomeFantasia}</TableCell>
                                             <TableCell>{contrato.programacao?.programa}</TableCell>

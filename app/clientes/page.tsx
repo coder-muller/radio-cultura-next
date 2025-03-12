@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { getLocalStorage } from "@/lib/localStorage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogClose } from "@radix-ui/react-dialog";
+import IMask from 'imask';
 import { Edit, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -19,7 +20,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { formatPhone, sendDelete, sendGet, sendPost, sendPut } from "../functions";
 import { Cliente } from "../types";
-import IMask from 'imask'
 
 const formSchema = z.object({
     razaoSocial: z.string().optional(),
@@ -48,6 +48,8 @@ export default function Clientes() {
     const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 8
+    const [sortColumn, setSortColumn] = useState<string | null>(null)
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null)
 
     const cpfRef = useRef<HTMLInputElement>(null)
     const cnpjRef = useRef<HTMLInputElement>(null)
@@ -177,6 +179,90 @@ export default function Clientes() {
         }
     }
 
+    // Função para alternar ordenação
+    const toggleSort = (column: string) => {
+        if (sortColumn === column) {
+            // Se a coluna já está selecionada, alterna a direção
+            if (sortDirection === 'asc') {
+                setSortDirection('desc')
+            } else if (sortDirection === 'desc') {
+                // Se já está em ordem descendente, remove a ordenação
+                setSortColumn(null)
+                setSortDirection(null)
+            } else {
+                // Se não tiver direção, começa com ascendente
+                setSortDirection('asc')
+            }
+        } else {
+            // Se for uma nova coluna, define a coluna e direção ascendente
+            setSortColumn(column)
+            setSortDirection('asc')
+        }
+    }
+
+    // Função para ordenar os clientes
+    const sortedClientes = () => {
+        // Se não houver coluna de ordenação, retorna a lista original filtrada
+        if (!sortColumn || !sortDirection) {
+            return clientes
+                .filter((cliente) => {
+                    return cliente.nomeFantasia?.toLowerCase().includes(clienteSearch.toLowerCase()) ?? false
+                })
+                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+        }
+
+        // Cria uma cópia da lista para não modificar a original
+        return [...clientes]
+            .filter((cliente) => {
+                return cliente.nomeFantasia?.toLowerCase().includes(clienteSearch.toLowerCase()) ?? false
+            })
+            .sort((a, b) => {
+                // Verifica a coluna selecionada e ordena de acordo
+                if (sortColumn === 'nomeFantasia') {
+                    const valA = a.nomeFantasia?.toLowerCase() || '';
+                    const valB = b.nomeFantasia?.toLowerCase() || '';
+                    return sortDirection === 'asc' 
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'atividade') {
+                    const valA = a.atividade?.toLowerCase() || '';
+                    const valB = b.atividade?.toLowerCase() || '';
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'documento') {
+                    const valA = a.cnpj || a.cpf || '';
+                    const valB = b.cnpj || b.cpf || '';
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'email') {
+                    const valA = a.email?.toLowerCase() || '';
+                    const valB = b.email?.toLowerCase() || '';
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'fone') {
+                    const valA = a.fone || '';
+                    const valB = b.fone || '';
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                return 0;
+            })
+            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    }
+
     return (
         <>
             <div className="my-4">
@@ -220,11 +306,41 @@ export default function Clientes() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Nome Fantasia</TableHead>
-                                <TableHead>Atividade</TableHead>
-                                <TableHead>CNPJ / CPF</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Telefone</TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'nomeFantasia' ? sortDirection : null}
+                                    onClick={() => toggleSort('nomeFantasia')}
+                                >
+                                    Nome Fantasia
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'atividade' ? sortDirection : null}
+                                    onClick={() => toggleSort('atividade')}
+                                >
+                                    Atividade
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'documento' ? sortDirection : null}
+                                    onClick={() => toggleSort('documento')}
+                                >
+                                    CNPJ / CPF
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'email' ? sortDirection : null}
+                                    onClick={() => toggleSort('email')}
+                                >
+                                    Email
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'fone' ? sortDirection : null}
+                                    onClick={() => toggleSort('fone')}
+                                >
+                                    Telefone
+                                </TableHead>
                                 <TableHead className="w-[100px] text-center">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -239,95 +355,90 @@ export default function Clientes() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                clientes.length > 1 && clientes
-                                    .filter((cliente) => {
-                                        return cliente.nomeFantasia?.toLowerCase().includes(clienteSearch.toLowerCase()) ?? false
-                                    })
-                                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                                    .map((cliente) => (
-                                        <TableRow key={cliente.id}>
-                                            <TableCell className="font-medium">{cliente.nomeFantasia}</TableCell>
-                                            <TableCell>{cliente.atividade}</TableCell>
-                                            <TableCell>{cliente.cnpj ? cliente.cnpj : cliente.cpf ? cliente.cpf : ''}</TableCell>
-                                            <TableCell>{cliente.email}</TableCell>
-                                            <TableCell>{formatPhone(cliente.fone)}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center justify-center space-x-2">
+                                clientes.length > 1 && sortedClientes().map((cliente) => (
+                                    <TableRow key={cliente.id}>
+                                        <TableCell className="font-medium">{cliente.nomeFantasia}</TableCell>
+                                        <TableCell>{cliente.atividade}</TableCell>
+                                        <TableCell>{cliente.cnpj ? cliente.cnpj : cliente.cpf ? cliente.cpf : ''}</TableCell>
+                                        <TableCell>{cliente.email}</TableCell>
+                                        <TableCell>{formatPhone(cliente.fone)}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center justify-center space-x-2">
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+                                                                setSelectedCliente(cliente)
+                                                                formCliente.reset({
+                                                                    razaoSocial: cliente.razaoSocial ? cliente.nomeFantasia : '',
+                                                                    nomeFantasia: cliente.nomeFantasia,
+                                                                    contato: cliente.contato ? cliente.contato : '',
+                                                                    cpf: cliente.cpf ? cliente.cpf : '',
+                                                                    cnpj: cliente.cnpj ? cliente.cnpj : '',
+                                                                    endereco: cliente.endereco ? cliente.endereco : '',
+                                                                    numero: cliente.numero ? cliente.numero : '',
+                                                                    bairro: cliente.bairro ? cliente.bairro : '',
+                                                                    cidade: cliente.cidade ? cliente.cidade : '',
+                                                                    estado: cliente.estado ? cliente.estado : '',
+                                                                    cep: cliente.cep ? cliente.cep : '',
+                                                                    inscMunicipal: cliente.inscMunicipal ? cliente.inscMunicipal : '',
+                                                                    atividade: cliente.atividade ? cliente.atividade : '',
+                                                                    email: cliente.email ? cliente.email : '',
+                                                                    fone: cliente.fone ? cliente.fone : '',
+                                                                })
+                                                                setIsDialogOpen(true)
+                                                            }}>
+                                                                <Edit className="h-4 w-4" />
+                                                                <span className="sr-only">Editar</span>
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Editar</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                <AlertDialog>
                                                     <TooltipProvider>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
-                                                                    setSelectedCliente(cliente)
-                                                                    formCliente.reset({
-                                                                        razaoSocial: cliente.razaoSocial ? cliente.nomeFantasia : '',
-                                                                        nomeFantasia: cliente.nomeFantasia,
-                                                                        contato: cliente.contato ? cliente.contato : '',
-                                                                        cpf: cliente.cpf ? cliente.cpf : '',
-                                                                        cnpj: cliente.cnpj ? cliente.cnpj : '',
-                                                                        endereco: cliente.endereco ? cliente.endereco : '',
-                                                                        numero: cliente.numero ? cliente.numero : '',
-                                                                        bairro: cliente.bairro ? cliente.bairro : '',
-                                                                        cidade: cliente.cidade ? cliente.cidade : '',
-                                                                        estado: cliente.estado ? cliente.estado : '',
-                                                                        cep: cliente.cep ? cliente.cep : '',
-                                                                        inscMunicipal: cliente.inscMunicipal ? cliente.inscMunicipal : '',
-                                                                        atividade: cliente.atividade ? cliente.atividade : '',
-                                                                        email: cliente.email ? cliente.email : '',
-                                                                        fone: cliente.fone ? cliente.fone : '',
-                                                                    })
-                                                                    setIsDialogOpen(true)
-                                                                }}>
-                                                                    <Edit className="h-4 w-4" />
-                                                                    <span className="sr-only">Editar</span>
-                                                                </Button>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                        <span className="sr-only">Excluir</span>
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>Editar</p>
+                                                                <p>Excluir</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
-                                                    <AlertDialog>
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                                                                            <Trash2 className="h-4 w-4" />
-                                                                            <span className="sr-only">Excluir</span>
-                                                                        </Button>
-                                                                    </AlertDialogTrigger>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Excluir</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    <div className="text-destructive font-semibold mb-2">ATENÇÃO! Esta é uma ação irreversível!</div>
-                                                                    <p>Excluir este cliente afetará <strong>permanentemente</strong>:</p>
-                                                                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                                                                        <li>Todos os contratos vinculados a este cliente</li>
-                                                                        <li>Todas as faturas (incluindo as já pagas)</li>
-                                                                        <li>Comissões geradas por este cliente</li>
-                                                                    </ul>
-                                                                    <p className="mt-2">Após a exclusão, estes dados não poderão ser recuperados.</p>
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => {
-                                                                    handleDelete(cliente.id.toString())
-                                                                }}>Continuar</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    )))}
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                <div className="text-destructive font-semibold mb-2">ATENÇÃO! Esta é uma ação irreversível!</div>
+                                                                <p>Excluir este cliente afetará <strong>permanentemente</strong>:</p>
+                                                                <ul className="list-disc pl-5 mt-2 space-y-1">
+                                                                    <li>Todos os contratos vinculados a este cliente</li>
+                                                                    <li>Todas as faturas (incluindo as já pagas)</li>
+                                                                    <li>Comissões geradas por este cliente</li>
+                                                                </ul>
+                                                                <p className="mt-2">Após a exclusão, estes dados não poderão ser recuperados.</p>
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => {
+                                                                handleDelete(cliente.id.toString())
+                                                            }}>Continuar</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )))}
                         </TableBody>
                     </Table>
                 </div>

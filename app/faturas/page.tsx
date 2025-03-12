@@ -33,6 +33,8 @@ export default function Faturas() {
     const [dataFinalSearch, setDataFinalSearch] = useState(new Date().toLocaleDateString('pt-BR'))
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 8
+    const [sortColumn, setSortColumn] = useState<string | null>(null)
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null)
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null)
@@ -153,6 +155,27 @@ export default function Faturas() {
         }
     }
 
+    // Função para alternar ordenação
+    const toggleSort = (column: string) => {
+        if (sortColumn === column) {
+            // Se a coluna já está selecionada, alterna a direção
+            if (sortDirection === 'asc') {
+                setSortDirection('desc')
+            } else if (sortDirection === 'desc') {
+                // Se já está em ordem descendente, remove a ordenação
+                setSortColumn(null)
+                setSortDirection(null)
+            } else {
+                // Se não tiver direção, começa com ascendente
+                setSortDirection('asc')
+            }
+        } else {
+            // Se for uma nova coluna, define a coluna e direção ascendente
+            setSortColumn(column)
+            setSortDirection('asc')
+        }
+    }
+
     // Função para filtrar as faturas com base nos critérios de busca
     const filteredFaturas = faturas
         .filter(fatura => {
@@ -184,6 +207,82 @@ export default function Faturas() {
 
             return searchMatch && statusMatch && dataMatch;
         });
+    
+    // Função para ordenar as faturas
+    const sortedFaturas = () => {
+        // Se não houver coluna de ordenação, mantém a ordenação padrão por data de vencimento e nome do cliente
+        if (!sortColumn || !sortDirection) {
+            return filteredFaturas
+                .sort((a, b) => {
+                    const dataVencimentoA = a.dataVencimento ? new Date(a.dataVencimento) : new Date();
+                    const dataVencimentoB = b.dataVencimento ? new Date(b.dataVencimento) : new Date();
+
+                    const dateComparison = dataVencimentoA.getTime() - dataVencimentoB.getTime();
+                    if (dateComparison !== 0) return dateComparison;
+
+                    const nomeFantasiaA = a.cliente?.nomeFantasia?.toLowerCase() || '';
+                    const nomeFantasiaB = b.cliente?.nomeFantasia?.toLowerCase() || '';
+                    return nomeFantasiaA.localeCompare(nomeFantasiaB);
+                })
+                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+        }
+        
+        // Cria uma cópia da lista para não modificar a original
+        return [...filteredFaturas]
+            .sort((a, b) => {
+                // Verifica a coluna selecionada e ordena de acordo
+                if (sortColumn === 'cliente') {
+                    const valA = a.cliente?.nomeFantasia?.toLowerCase() || '';
+                    const valB = b.cliente?.nomeFantasia?.toLowerCase() || '';
+                    return sortDirection === 'asc' 
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'dataEmissao') {
+                    const valA = a.dataEmissao ? new Date(a.dataEmissao).getTime() : 0;
+                    const valB = b.dataEmissao ? new Date(b.dataEmissao).getTime() : 0;
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'dataVencimento') {
+                    const valA = a.dataVencimento ? new Date(a.dataVencimento).getTime() : 0;
+                    const valB = b.dataVencimento ? new Date(b.dataVencimento).getTime() : 0;
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'dataPagamento') {
+                    const valA = a.dataPagamento ? new Date(a.dataPagamento).getTime() : Number.MAX_SAFE_INTEGER;
+                    const valB = b.dataPagamento ? new Date(b.dataPagamento).getTime() : Number.MAX_SAFE_INTEGER;
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'valor') {
+                    const valA = a.valor ? parseFloat(a.valor.toString()) : 0;
+                    const valB = b.valor ? parseFloat(b.valor.toString()) : 0;
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'status') {
+                    const valA = a.dataPagamento ? 'paga' : 'pendente';
+                    const valB = b.dataPagamento ? 'paga' : 'pendente';
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                return 0;
+            })
+            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    }
 
     return (
         <>
@@ -231,12 +330,48 @@ export default function Faturas() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Data Emissão</TableHead>
-                                <TableHead>Data Vencimento</TableHead>
-                                <TableHead>Data Pagamento</TableHead>
-                                <TableHead>Valor</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'cliente' ? sortDirection : null}
+                                    onClick={() => toggleSort('cliente')}
+                                >
+                                    Cliente
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'dataEmissao' ? sortDirection : null}
+                                    onClick={() => toggleSort('dataEmissao')}
+                                >
+                                    Data Emissão
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'dataVencimento' ? sortDirection : null}
+                                    onClick={() => toggleSort('dataVencimento')}
+                                >
+                                    Data Vencimento
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'dataPagamento' ? sortDirection : null}
+                                    onClick={() => toggleSort('dataPagamento')}
+                                >
+                                    Data Pagamento
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'valor' ? sortDirection : null}
+                                    onClick={() => toggleSort('valor')}
+                                >
+                                    Valor
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'status' ? sortDirection : null}
+                                    onClick={() => toggleSort('status')}
+                                >
+                                    Status
+                                </TableHead>
                                 <TableHead className="w-[100px] text-center">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -252,54 +387,17 @@ export default function Faturas() {
                                 </TableRow>
                             ) : (
                                 filteredFaturas.length > 0 ? (
-                                    filteredFaturas
-                                        .sort((a, b) => {
-                                            const dataVencimentoA = a.dataVencimento ? new Date(a.dataVencimento) : new Date();
-                                            const dataVencimentoB = b.dataVencimento ? new Date(b.dataVencimento) : new Date();
-
-                                            const dateComparison = dataVencimentoA.getTime() - dataVencimentoB.getTime();
-                                            if (dateComparison !== 0) return dateComparison;
-
-                                            const nomeFantasiaA = a.cliente?.nomeFantasia?.toLowerCase() || '';
-                                            const nomeFantasiaB = b.cliente?.nomeFantasia?.toLowerCase() || '';
-                                            return nomeFantasiaA.localeCompare(nomeFantasiaB);
-                                        })
-                                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                                        .map((fatura) => (
-                                            <TableRow key={fatura.id}>
-                                                <TableCell className="font-medium">{fatura.cliente?.nomeFantasia}</TableCell>
-                                                <TableCell>{fatura.dataEmissao ? new Date(fatura.dataEmissao).toLocaleDateString('pt-BR') : '-'}</TableCell>
-                                                <TableCell>{fatura.dataVencimento ? new Date(fatura.dataVencimento).toLocaleDateString('pt-BR') : '-'}</TableCell>
-                                                <TableCell>{fatura.dataPagamento ? new Date(fatura.dataPagamento).toLocaleDateString('pt-BR') : '-'}</TableCell>
-                                                <TableCell>{fatura.valor ? `${parseFloat(fatura.valor.toString()).toLocaleString('pt-br', { currency: 'BRL', style: 'currency' })}` : '-'}</TableCell>
-                                                <TableCell>{fatura.dataPagamento ? 'Paga' : 'Pendente'}</TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center justify-end space-x-2">
-                                                        {!fatura.dataPagamento && (
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="h-8 w-8"
-                                                                            onClick={() => {
-                                                                                setSelectedFatura(fatura)
-                                                                                setDataPagamento(new Date().toLocaleDateString('pt-BR'))
-                                                                                setMetodoPagamento(formasPagamento[0]?.id.toString() || "")
-                                                                                setIsDialogOpen(true)
-                                                                            }}
-                                                                        >
-                                                                            <BadgeDollarSign className="h-4 w-4" />
-                                                                            <span className="sr-only">Pagar Fatura</span>
-                                                                        </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        <p>Pagar Fatura</p>
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
-                                                        )}
+                                    sortedFaturas().map((fatura) => (
+                                        <TableRow key={fatura.id}>
+                                            <TableCell className="font-medium">{fatura.cliente?.nomeFantasia}</TableCell>
+                                            <TableCell>{fatura.dataEmissao ? new Date(fatura.dataEmissao).toLocaleDateString('pt-BR') : '-'}</TableCell>
+                                            <TableCell>{fatura.dataVencimento ? new Date(fatura.dataVencimento).toLocaleDateString('pt-BR') : '-'}</TableCell>
+                                            <TableCell>{fatura.dataPagamento ? new Date(fatura.dataPagamento).toLocaleDateString('pt-BR') : '-'}</TableCell>
+                                            <TableCell>{fatura.valor ? `${parseFloat(fatura.valor.toString()).toLocaleString('pt-br', { currency: 'BRL', style: 'currency' })}` : '-'}</TableCell>
+                                            <TableCell>{fatura.dataPagamento ? 'Paga' : 'Pendente'}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-end space-x-2">
+                                                    {!fatura.dataPagamento && (
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
@@ -308,55 +406,79 @@ export default function Faturas() {
                                                                         size="icon"
                                                                         className="h-8 w-8"
                                                                         onClick={() => {
-                                                                            handlePrintAllFaturas([fatura])
+                                                                            setSelectedFatura(fatura)
+                                                                            setDataPagamento(new Date().toLocaleDateString('pt-BR'))
+                                                                            setMetodoPagamento(formasPagamento[0]?.id.toString() || "")
+                                                                            setIsDialogOpen(true)
                                                                         }}
                                                                     >
-                                                                        <Printer className="h-4 w-4" />
-                                                                        <span className="sr-only">Imprimir</span>
+                                                                        <BadgeDollarSign className="h-4 w-4" />
+                                                                        <span className="sr-only">Pagar Fatura</span>
                                                                     </Button>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    <p>Imprimir Fatura Individual</p>
+                                                                    <p>Pagar Fatura</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
-                                                        <AlertDialog>
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
-                                                                        <AlertDialogTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                                                                                <Trash2 className="h-4 w-4" />
-                                                                                <span className="sr-only">Excluir</span>
-                                                                            </Button>
-                                                                        </AlertDialogTrigger>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        <p>Excluir</p>
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        <div className="text-destructive font-semibold mb-2">ATENÇÃO! Esta é uma ação irreversível!</div>
-                                                                        <p>Excluir este fatura afetará <strong>permanentemente</strong> os registros do sistema.</p>
-                                                                        <p className="mt-2">Após a exclusão, estes dados não poderão ser recuperados.</p>
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => {
-                                                                        handleDelete(fatura.id.toString())
-                                                                    }}>Continuar</AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
+                                                    )}
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8"
+                                                                    onClick={() => {
+                                                                        handlePrintAllFaturas([fatura])
+                                                                    }}
+                                                                >
+                                                                    <Printer className="h-4 w-4" />
+                                                                    <span className="sr-only">Imprimir</span>
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>Imprimir Fatura Individual</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    <AlertDialog>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                            <span className="sr-only">Excluir</span>
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Excluir</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    <div className="text-destructive font-semibold mb-2">ATENÇÃO! Esta é uma ação irreversível!</div>
+                                                                    <p>Excluir este fatura afetará <strong>permanentemente</strong> os registros do sistema.</p>
+                                                                    <p className="mt-2">Após a exclusão, estes dados não poderão ser recuperados.</p>
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => {
+                                                                    handleDelete(fatura.id.toString())
+                                                                }}>Continuar</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={8} className="h-24 text-center">

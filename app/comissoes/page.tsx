@@ -1,19 +1,19 @@
 'use client'
 
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { getLocalStorage } from "@/lib/localStorage"
+import IMask from "imask"
+import { Printer } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { parseDate, sendGet } from "../functions"
-import { Corretor, Contrato, Fatura } from "../types"
-import IMask from "imask"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/button"
-import { Printer } from "lucide-react"
+import { Contrato, Corretor, Fatura } from "../types"
 import { handlePrintComissoes } from "./handlePrintComissoes"
 
 export interface ComissaoData {
@@ -36,6 +36,8 @@ export default function Comissoes() {
     const [isLoading, setIsLoading] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 8
+    const [sortColumn, setSortColumn] = useState<string | null>(null)
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null)
 
     const [corretores, setCorretores] = useState<Corretor[]>([])
     const [comissoes, setComissoes] = useState<ComissaoData[]>([])
@@ -127,6 +129,27 @@ export default function Comissoes() {
         setComissoes(comissoesData)
     }
 
+    // Função para alternar ordenação
+    const toggleSort = (column: string) => {
+        if (sortColumn === column) {
+            // Se a coluna já está selecionada, alterna a direção
+            if (sortDirection === 'asc') {
+                setSortDirection('desc')
+            } else if (sortDirection === 'desc') {
+                // Se já está em ordem descendente, remove a ordenação
+                setSortColumn(null)
+                setSortDirection(null)
+            } else {
+                // Se não tiver direção, começa com ascendente
+                setSortDirection('asc')
+            }
+        } else {
+            // Se for uma nova coluna, define a coluna e direção ascendente
+            setSortColumn(column)
+            setSortDirection('asc')
+        }
+    }
+
     const filteredComissoes = comissoes.filter(comissao => {
         const dataPagamento = comissao.dataPagamento !== '-' ?
             new Date(comissao.dataPagamento.split('/').reverse().join('-')) : null
@@ -146,10 +169,80 @@ export default function Comissoes() {
         return dateInRange && corretorMatch
     })
 
-    const paginatedComissoes = filteredComissoes.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    )
+    // Função para ordenar as comissões
+    const sortedComissoes = () => {
+        // Se não houver coluna de ordenação, retorna a lista filtrada sem ordenação adicional
+        if (!sortColumn || !sortDirection) {
+            return filteredComissoes.slice(
+                (currentPage - 1) * itemsPerPage,
+                currentPage * itemsPerPage
+            );
+        }
+        
+        // Cria uma cópia da lista para não modificar a original
+        return [...filteredComissoes]
+            .sort((a, b) => {
+                // Verifica a coluna selecionada e ordena de acordo
+                if (sortColumn === 'corretor') {
+                    const valA = a.corretor.toLowerCase();
+                    const valB = b.corretor.toLowerCase();
+                    return sortDirection === 'asc' 
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'cliente') {
+                    const valA = a.cliente.toLowerCase();
+                    const valB = b.cliente.toLowerCase();
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'programa') {
+                    const valA = a.programa.toLowerCase();
+                    const valB = b.programa.toLowerCase();
+                    return sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                }
+                
+                if (sortColumn === 'dataPagamento') {
+                    const getDateValue = (dateStr: string) => {
+                        if (dateStr === '-') return 0;
+                        const parts = dateStr.split('/');
+                        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
+                    };
+                    
+                    const valA = getDateValue(a.dataPagamento);
+                    const valB = getDateValue(b.dataPagamento);
+                    return sortDirection === 'asc'
+                        ? valA - valB
+                        : valB - valA;
+                }
+                
+                if (sortColumn === 'valor') {
+                    return sortDirection === 'asc'
+                        ? a.valor - b.valor
+                        : b.valor - a.valor;
+                }
+                
+                if (sortColumn === 'comissao') {
+                    return sortDirection === 'asc'
+                        ? a.comissao - b.comissao
+                        : b.comissao - a.comissao;
+                }
+                
+                if (sortColumn === 'valorComissao') {
+                    return sortDirection === 'asc'
+                        ? a.valorComissao - b.valorComissao
+                        : b.valorComissao - a.valorComissao;
+                }
+                
+                return 0;
+            })
+            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    }
 
     const totalPages = Math.max(1, Math.ceil(filteredComissoes.length / itemsPerPage))
 
@@ -206,19 +299,61 @@ export default function Comissoes() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Corretor</TableHead>
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Programa</TableHead>
-                                <TableHead>Data Pagamento</TableHead>
-                                <TableHead>Valor Fatura</TableHead>
-                                <TableHead>Comissão (%)</TableHead>
-                                <TableHead>Valor Comissão</TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'corretor' ? sortDirection : null}
+                                    onClick={() => toggleSort('corretor')}
+                                >
+                                    Corretor
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'cliente' ? sortDirection : null}
+                                    onClick={() => toggleSort('cliente')}
+                                >
+                                    Cliente
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'programa' ? sortDirection : null}
+                                    onClick={() => toggleSort('programa')}
+                                >
+                                    Programa
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'dataPagamento' ? sortDirection : null}
+                                    onClick={() => toggleSort('dataPagamento')}
+                                >
+                                    Data Pagamento
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'valor' ? sortDirection : null}
+                                    onClick={() => toggleSort('valor')}
+                                >
+                                    Valor Fatura
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'comissao' ? sortDirection : null}
+                                    onClick={() => toggleSort('comissao')}
+                                >
+                                    Comissão (%)
+                                </TableHead>
+                                <TableHead 
+                                    sortable 
+                                    sortDirection={sortColumn === 'valorComissao' ? sortDirection : null}
+                                    onClick={() => toggleSort('valorComissao')}
+                                >
+                                    Valor Comissão
+                                </TableHead>
                                 <TableHead className="w-[100px]">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {paginatedComissoes.length > 0 ? (
-                                paginatedComissoes.map((comissao) => (
+                            {sortedComissoes().length > 0 ? (
+                                sortedComissoes().map((comissao) => (
                                     <TableRow key={comissao.id}>
                                         <TableCell className="font-medium">{comissao.corretor}</TableCell>
                                         <TableCell>{comissao.cliente}</TableCell>
