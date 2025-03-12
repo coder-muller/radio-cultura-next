@@ -40,6 +40,7 @@ const formSchema = z.object({
 })
 
 export default function Clientes() {
+    const [isFetching, setIsFetching] = useState(false)
     const [clientes, setClientes] = useState<Cliente[]>([])
     const [clienteSearch, setClienteSearch] = useState<string>('')
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -91,10 +92,12 @@ export default function Clientes() {
     }, [clienteSearch])
 
     async function fetchData() {
+        setIsFetching(true)
         const token = getLocalStorage('token')
 
         if (!token) {
             window.location.href = '/'
+            setIsFetching(false)
             return
         }
 
@@ -103,6 +106,8 @@ export default function Clientes() {
             setClientes(clientes)
         } catch (error) {
             console.error(error)
+        } finally {
+            setIsFetching(false)
         }
     }
 
@@ -111,25 +116,6 @@ export default function Clientes() {
 
         const token = getLocalStorage('token')
         if (!token) return
-
-        let hasDuplicate = false
-        for (const cliente of clientes) {
-            if (cliente.cnpj === data.cnpj && data.cnpj.length > 1) {
-                toast.error('CNPJ já cadastrado!')
-                setIsLoading(false)
-                hasDuplicate = true
-                break
-            }
-
-            if (cliente.cpf === data.cpf && data.cpf.length > 1) {
-                toast.error('CPF já cadastrado!')
-                setIsLoading(false)
-                hasDuplicate = true
-                break
-            }
-        }
-
-        if (hasDuplicate) return
 
         if (selectedCliente) {
             try {
@@ -145,6 +131,26 @@ export default function Clientes() {
                 setIsLoading(false)
             }
         } else {
+
+            let hasDuplicate = false
+            for (const cliente of clientes) {
+                if (cliente.cnpj === data.cnpj && data.cnpj.length > 1) {
+                    toast.error('CNPJ já cadastrado!')
+                    setIsLoading(false)
+                    hasDuplicate = true
+                    break
+                }
+
+                if (cliente.cpf === data.cpf && data.cpf.length > 1) {
+                    toast.error('CPF já cadastrado!')
+                    setIsLoading(false)
+                    hasDuplicate = true
+                    break
+                }
+            }
+
+            if (hasDuplicate) return
+
             try {
                 await sendPost('/clientes', { ...data, chave: token })
                 toast.success('Cliente cadastrado com sucesso!')
@@ -223,95 +229,105 @@ export default function Clientes() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {clientes.length > 1 && clientes
-                                .filter((cliente) => {
-                                    return cliente.nomeFantasia?.toLowerCase().includes(clienteSearch.toLowerCase()) ?? false
-                                })
-                                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                                .map((cliente) => (
-                                    <TableRow key={cliente.id}>
-                                        <TableCell className="font-medium">{cliente.nomeFantasia}</TableCell>
-                                        <TableCell>{cliente.atividade}</TableCell>
-                                        <TableCell>{cliente.cnpj ? cliente.cnpj : cliente.cpf ? cliente.cpf : ''}</TableCell>
-                                        <TableCell>{cliente.email}</TableCell>
-                                        <TableCell>{formatPhone(cliente.fone)}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center justify-center space-x-2">
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
-                                                                setSelectedCliente(cliente)
-                                                                formCliente.reset({
-                                                                    razaoSocial: cliente.razaoSocial ? cliente.nomeFantasia : '',
-                                                                    nomeFantasia: cliente.nomeFantasia,
-                                                                    contato: cliente.contato ? cliente.contato : '',
-                                                                    cpf: cliente.cpf ? cliente.cpf : '',
-                                                                    cnpj: cliente.cnpj ? cliente.cnpj : '',
-                                                                    endereco: cliente.endereco ? cliente.endereco : '',
-                                                                    numero: cliente.numero ? cliente.numero : '',
-                                                                    bairro: cliente.bairro ? cliente.bairro : '',
-                                                                    cidade: cliente.cidade ? cliente.cidade : '',
-                                                                    estado: cliente.estado ? cliente.estado : '',
-                                                                    cep: cliente.cep ? cliente.cep : '',
-                                                                    inscMunicipal: cliente.inscMunicipal ? cliente.inscMunicipal : '',
-                                                                    atividade: cliente.atividade ? cliente.atividade : '',
-                                                                    email: cliente.email ? cliente.email : '',
-                                                                    fone: cliente.fone ? cliente.fone : '',
-                                                                })
-                                                                setIsDialogOpen(true)
-                                                            }}>
-                                                                <Edit className="h-4 w-4" />
-                                                                <span className="sr-only">Editar</span>
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Editar</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                                <AlertDialog>
+                            {isFetching ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Loader2 className="animate-spin" />
+                                            Carregando...
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                clientes.length > 1 && clientes
+                                    .filter((cliente) => {
+                                        return cliente.nomeFantasia?.toLowerCase().includes(clienteSearch.toLowerCase()) ?? false
+                                    })
+                                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                    .map((cliente) => (
+                                        <TableRow key={cliente.id}>
+                                            <TableCell className="font-medium">{cliente.nomeFantasia}</TableCell>
+                                            <TableCell>{cliente.atividade}</TableCell>
+                                            <TableCell>{cliente.cnpj ? cliente.cnpj : cliente.cpf ? cliente.cpf : ''}</TableCell>
+                                            <TableCell>{cliente.email}</TableCell>
+                                            <TableCell>{formatPhone(cliente.fone)}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-center space-x-2">
                                                     <TooltipProvider>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                        <span className="sr-only">Excluir</span>
-                                                                    </Button>
-                                                                </AlertDialogTrigger>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+                                                                    setSelectedCliente(cliente)
+                                                                    formCliente.reset({
+                                                                        razaoSocial: cliente.razaoSocial ? cliente.nomeFantasia : '',
+                                                                        nomeFantasia: cliente.nomeFantasia,
+                                                                        contato: cliente.contato ? cliente.contato : '',
+                                                                        cpf: cliente.cpf ? cliente.cpf : '',
+                                                                        cnpj: cliente.cnpj ? cliente.cnpj : '',
+                                                                        endereco: cliente.endereco ? cliente.endereco : '',
+                                                                        numero: cliente.numero ? cliente.numero : '',
+                                                                        bairro: cliente.bairro ? cliente.bairro : '',
+                                                                        cidade: cliente.cidade ? cliente.cidade : '',
+                                                                        estado: cliente.estado ? cliente.estado : '',
+                                                                        cep: cliente.cep ? cliente.cep : '',
+                                                                        inscMunicipal: cliente.inscMunicipal ? cliente.inscMunicipal : '',
+                                                                        atividade: cliente.atividade ? cliente.atividade : '',
+                                                                        email: cliente.email ? cliente.email : '',
+                                                                        fone: cliente.fone ? cliente.fone : '',
+                                                                    })
+                                                                    setIsDialogOpen(true)
+                                                                }}>
+                                                                    <Edit className="h-4 w-4" />
+                                                                    <span className="sr-only">Editar</span>
+                                                                </Button>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>Excluir</p>
+                                                                <p>Editar</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                <div className="text-destructive font-semibold mb-2">ATENÇÃO! Esta é uma ação irreversível!</div>
-                                                                <p>Excluir este cliente afetará <strong>permanentemente</strong>:</p>
-                                                                <ul className="list-disc pl-5 mt-2 space-y-1">
-                                                                    <li>Todos os contratos vinculados a este cliente</li>
-                                                                    <li>Todas as faturas (incluindo as já pagas)</li>
-                                                                    <li>Comissões geradas por este cliente</li>
-                                                                </ul>
-                                                                <p className="mt-2">Após a exclusão, estes dados não poderão ser recuperados.</p>
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => {
-                                                                handleDelete(cliente.id.toString())
-                                                            }}>Continuar</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                                    <AlertDialog>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                            <span className="sr-only">Excluir</span>
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Excluir</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    <div className="text-destructive font-semibold mb-2">ATENÇÃO! Esta é uma ação irreversível!</div>
+                                                                    <p>Excluir este cliente afetará <strong>permanentemente</strong>:</p>
+                                                                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                                                                        <li>Todos os contratos vinculados a este cliente</li>
+                                                                        <li>Todas as faturas (incluindo as já pagas)</li>
+                                                                        <li>Comissões geradas por este cliente</li>
+                                                                    </ul>
+                                                                    <p className="mt-2">Após a exclusão, estes dados não poderão ser recuperados.</p>
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => {
+                                                                    handleDelete(cliente.id.toString())
+                                                                }}>Continuar</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )))}
                         </TableBody>
                     </Table>
                 </div>

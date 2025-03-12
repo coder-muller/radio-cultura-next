@@ -51,6 +51,8 @@ export default function Contratos() {
         resolver: zodResolver(configSchema),
     })
 
+    const [isFetching, setIsFetching] = useState(false)
+
     const [contratos, setContratos] = useState<Contrato[]>([])
     const [clientes, setClientes] = useState<Cliente[]>([])
     const [programas, setProgramas] = useState<Programa[]>([])
@@ -104,9 +106,10 @@ export default function Contratos() {
 
     async function fetchData() {
         const token = getLocalStorage('token')
-
+        setIsFetching(true)
         if (!token) {
             window.location.href = '/'
+            setIsFetching(false)
             return
         }
 
@@ -116,6 +119,8 @@ export default function Contratos() {
         } catch (error) {
             console.error("Erro ao buscar contratos:", error);
             toast.error("Erro ao buscar contratos.");
+        } finally {
+            setIsFetching(false)
         }
     }
 
@@ -464,8 +469,18 @@ export default function Contratos() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredContratos.length > 0 ? (
-                                filteredContratos
+                            {isFetching ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Loader2 className="animate-spin" />
+                                            Carregando...
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                filteredContratos.length > 0 ? (
+                                    filteredContratos
                                     .sort((a, b) => {
                                         return a.diaVencimento && b.diaVencimento ? parseInt(a.diaVencimento.toString()) - parseInt(b.diaVencimento.toString()) : 0
                                     })
@@ -575,10 +590,11 @@ export default function Contratos() {
                                             </TableCell>
                                         </TableRow>
                                     ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={7} className="text-center">Nenhum contrato encontrado.</TableCell>
-                                </TableRow>
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center">Nenhum contrato encontrado.</TableCell>
+                                    </TableRow>
+                                )
                             )}
                         </TableBody>
                     </Table>

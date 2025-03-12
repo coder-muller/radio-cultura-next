@@ -79,10 +79,10 @@ export const handlePrintAllFaturas = async (faturas: Fatura[]) => {
                 <body>
         `
     for (const fatura of faturas) {
-        const nomeCliente = fatura.cliente.nomeFantasia
-        const nomePrograma = fatura.programa.programa
+        const nomeCliente = fatura.cliente.nomeFantasia || 'Não Informado'
+        const nomePrograma = fatura.programa.programa || 'Não Informado'
         const descritivoContrato = fatura.contrato.descritivo ? fatura.contrato.descritivo : 'Sem descrição'
-        const nomeCorretor = fatura.corretores?.nome
+        const nomeCorretor = fatura.corretores?.nome || 'Não Informado'
 
         boletoHtml += `
            <div style="font-family: Arial, sans-serif; padding: 20px;" class="boleto">
@@ -106,29 +106,29 @@ export const handlePrintAllFaturas = async (faturas: Fatura[]) => {
                         </div>
                         <div>
                             <p>Endereço:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.endereco}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.endereco || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>Município:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.cidade}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.cidade || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>CNPJ:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.cnpj}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.cnpj || 'Não Informado'}</h1>
                         </div>
                     </div>
                     <div style="width: 50%; display: flex; flex-direction: column; align-items: flex-start; gap: 10px;">
                         <div>
                             <p>Fone:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.fone}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.fone || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>CEP:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.cep}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.cep || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>Estado:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.estado}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.estado || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>Divulgação:</p>
@@ -193,29 +193,29 @@ export const handlePrintAllFaturas = async (faturas: Fatura[]) => {
                         </div>
                         <div>
                             <p>Endereço:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.endereco}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.endereco || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>Município:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.cidade}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.cidade || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>CNPJ:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.cnpj}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.cnpj || 'Não Informado'}</h1>
                         </div>
                     </div>
                     <div style="width: 50%; display: flex; flex-direction: column; align-items: flex-start; gap: 10px;">
                         <div>
                             <p>Fone:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.fone}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.fone || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>CEP:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.cep}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.cep || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>Estado:</p>
-                            <h1 style="font-weight: bold;">${fatura.cliente?.estado}</h1>
+                            <h1 style="font-weight: bold;">${fatura.cliente?.estado || 'Não Informado'}</h1>
                         </div>
                         <div>
                             <p>Divulgação:</p>
