@@ -1,18 +1,43 @@
+// Safely get an item from localStorage with error handling
 export function getLocalStorage(key: string): string | null {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem(key)
+  if (typeof window === 'undefined') {
+    return null;
   }
-  return null
+  
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.error('Error accessing localStorage:', error);
+    return null;
+  }
 }
 
-export function setLocalStorage(key: string, value: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(key, value)
+// Safely set an item in localStorage with error handling
+export function setLocalStorage(key: string, value: string): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (error) {
+    console.error('Error setting localStorage:', error);
+    return false;
   }
 }
 
-export function removeLocalStorage(key: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(key)
+// Safely remove an item from localStorage with error handling
+export function removeLocalStorage(key: string): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch (error) {
+    console.error('Error removing from localStorage:', error);
+    return false;
   }
 }
