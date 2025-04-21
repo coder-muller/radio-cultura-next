@@ -29,6 +29,7 @@ export default function Header() {
     }, []);
 
     const navItems = [
+        { name: "Dashboard", href: "/dashboard" },
         { name: "Clientes", href: "/clientes" },
         { name: "Contratos", href: "/contratos" },
         { name: "Faturas", href: "/faturas" },
