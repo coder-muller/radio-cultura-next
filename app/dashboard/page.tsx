@@ -498,7 +498,7 @@ export default function Dashboard() {
               <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                 <Card className="p-4">
                   <h3 className="text-lg font-semibold mb-4">Histórico de Receita (6 meses)</h3>
-                  <div className="h-80">
+                  <div className="h-full">
                     <ChartContainer config={chartConfig}>
                       <BarChart data={metrics.monthlyRevenue}>
                         <XAxis dataKey="name" />
@@ -536,7 +536,7 @@ export default function Dashboard() {
                 {/* Growth Chart */}
                 <Card className="p-4">
                   <h3 className="text-lg font-semibold mb-4">Crescimento Mensal (%)</h3>
-                  <div className="h-80">
+                  <div className="h-full">
                     <ChartContainer config={chartConfig}>
                       <LineChart data={metrics.monthlyGrowth}>
                         <XAxis dataKey="name" />
