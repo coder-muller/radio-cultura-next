@@ -17,6 +17,22 @@ import {
   Percent 
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { 
+  ChartContainer, 
+  ChartTooltip 
+} from '@/components/ui/chart'
+import { 
+  Bar, 
+  BarChart, 
+  Line, 
+  LineChart, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer,
+  XAxis, 
+  YAxis
+} from 'recharts'
 
 // Helper function to format currency
 const formatCurrency = (value: number): string => {
@@ -49,6 +65,10 @@ interface DashboardMetrics {
     '60+': number
   }
   totalCommission: number
+  // Monthly history data for charts
+  monthlyRevenue: Array<{name: string, value: number}>
+  monthlyGrowth: Array<{name: string, value: number}>
+  clientDistribution: Array<{name: string, value: number}>
 }
 
 export default function Dashboard() {
@@ -70,7 +90,10 @@ export default function Dashboard() {
       '31-60': 0,
       '60+': 0
     },
-    totalCommission: 0
+    totalCommission: 0,
+    monthlyRevenue: [],
+    monthlyGrowth: [],
+    clientDistribution: []
   })
   const [loading, setLoading] = useState<boolean>(true)
 
@@ -253,6 +276,55 @@ export default function Dashboard() {
       }
     })
 
+    // Generate chart data
+
+    // Last 6 months revenue data for chart
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+      const date = new Date(currentYear, currentMonth - i, 1)
+      return {
+        month: date.getMonth(),
+        year: date.getFullYear(),
+        name: `${getMonthName(date.getMonth()).substring(0, 3)}/${date.getFullYear().toString().substring(2)}`
+      }
+    }).reverse()
+
+    // Monthly revenue data for chart
+    const monthlyRevenue = last6Months.map(monthData => {
+      const monthFaturas = faturas.filter(f => {
+        if (!f.dataPagamento) return false
+        const date = new Date(f.dataPagamento)
+        return date.getMonth() === monthData.month && date.getFullYear() === monthData.year
+      })
+      
+      const total = monthFaturas.reduce((sum, fatura) => 
+        sum + (parseFloat(fatura.valor?.toString() || '0') || 0), 0)
+      
+      return {
+        name: monthData.name,
+        value: total
+      }
+    })
+
+    // Monthly growth data
+    const monthlyGrowth = monthlyRevenue.map((current, index) => {
+      if (index === 0 || monthlyRevenue[index - 1].value === 0) {
+        return { name: current.name, value: 0 }
+      }
+      const previous = monthlyRevenue[index - 1].value
+      const growthPercent = ((current.value - previous) / previous) * 100
+      return {
+        name: current.name,
+        value: growthPercent
+      }
+    })
+
+    // Prepare aging data for pie chart
+    const agingDistribution = [
+      { name: '0-30 dias', value: agingValues['0-30'] },
+      { name: '31-60 dias', value: agingValues['31-60'] },
+      { name: '60+ dias', value: agingValues['60+'] }
+    ]
+
     setMetrics({
       rbm,
       rlm,
@@ -265,7 +337,10 @@ export default function Dashboard() {
       paidOnTimePercent,
       clientsWithOverdue,
       agingValues,
-      totalCommission
+      totalCommission,
+      monthlyRevenue,
+      monthlyGrowth,
+      clientDistribution: agingDistribution
     })
   }
 
@@ -294,6 +369,47 @@ export default function Dashboard() {
       setCurrentMonth(currentMonth + 1)
     }
   }
+
+  // Chart configurations
+  const chartConfig = {
+    receita: {
+      label: "Receita",
+      theme: {
+        light: "hsl(215 100% 50%)",
+        dark: "hsl(215 100% 60%)"
+      }
+    },
+    crescimento: {
+      label: "Crescimento",
+      theme: {
+        light: "hsl(142 72% 29%)",
+        dark: "hsl(142 72% 50%)"
+      }
+    },
+    aging30: {
+      label: "0-30 dias",
+      theme: {
+        light: "hsl(142 70% 45%)",
+        dark: "hsl(142 70% 50%)"
+      }
+    },
+    aging60: {
+      label: "31-60 dias",
+      theme: {
+        light: "hsl(48 96% 53%)",
+        dark: "hsl(48 96% 53%)"
+      }
+    },
+    aging90: {
+      label: "60+ dias",
+      theme: {
+        light: "hsl(0 84% 60%)",
+        dark: "hsl(0 84% 60%)"
+      }
+    }
+  }
+
+  const COLORS = ['#0088FE', '#FFBB28', '#FF8042'];
 
   return (
     <div className="space-y-6 p-4 sm:p-6 md:p-8">
@@ -363,7 +479,7 @@ export default function Dashboard() {
                 />
               </div>
 
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <MetricCard 
                   title="Ticket Médio por Cliente" 
                   value={formatCurrency(metrics.ticketMedio)}
@@ -376,6 +492,87 @@ export default function Dashboard() {
                   description="Soma de comissões em faturas pagas"
                   icon={<CircleDollarSign className="h-6 w-6" />}
                 />
+              </div>
+
+              {/* Revenue History Chart */}
+              <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                <Card className="p-4">
+                  <h3 className="text-lg font-semibold mb-4">Histórico de Receita (6 meses)</h3>
+                  <div className="h-80">
+                    <ChartContainer config={chartConfig}>
+                      <BarChart data={metrics.monthlyRevenue}>
+                        <XAxis dataKey="name" />
+                        <YAxis 
+                          tickFormatter={(value) => 
+                            `R$ ${(value / 1000).toFixed(0)}k`
+                          } 
+                        />
+                        <ChartTooltip 
+                          content={({ active, payload }) => {
+                            if (!active || !payload?.length) return null;
+                            
+                            return (
+                              <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs text-muted-foreground">
+                                      {payload[0].payload.name}
+                                    </span>
+                                    <span className="font-bold">
+                                      {formatCurrency(payload[0].value as number)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }}
+                        />
+                        <Bar dataKey="value" fill="var(--color-receita)" />
+                      </BarChart>
+                    </ChartContainer>
+                  </div>
+                </Card>
+
+                {/* Growth Chart */}
+                <Card className="p-4">
+                  <h3 className="text-lg font-semibold mb-4">Crescimento Mensal (%)</h3>
+                  <div className="h-80">
+                    <ChartContainer config={chartConfig}>
+                      <LineChart data={metrics.monthlyGrowth}>
+                        <XAxis dataKey="name" />
+                        <YAxis 
+                          tickFormatter={(value) => `${value.toFixed(0)}%`} 
+                        />
+                        <ChartTooltip 
+                          content={({ active, payload }) => {
+                            if (!active || !payload?.length) return null;
+                            
+                            return (
+                              <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs text-muted-foreground">
+                                      {payload[0].payload.name}
+                                    </span>
+                                    <span className="font-bold">
+                                      {formatPercent(payload[0].value as number)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="value" 
+                          stroke="var(--color-crescimento)" 
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ChartContainer>
+                  </div>
+                </Card>
               </div>
             </TabsContent>
 
@@ -437,7 +634,7 @@ export default function Dashboard() {
                   icon={<Clock className="h-6 w-6" />}
                 />
               </div>
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                 <MetricCard 
                   title="Faturas Atrasadas (60+ dias)" 
                   value={formatCurrency(metrics.agingValues['60+'])}
@@ -445,6 +642,49 @@ export default function Dashboard() {
                   icon={<AlertCircle className="h-6 w-6" />}
                 />
               </div>
+
+              {/* Aging distribution pie chart */}
+              <Card className="p-4">
+                <h3 className="text-lg font-semibold mb-4">Distribuição de Faturas em Atraso</h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={metrics.clientDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {metrics.clientDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          
+                          return (
+                            <div className="rounded-lg border bg-background p-2 shadow-sm">
+                              <div className="flex flex-col">
+                                <span className="text-xs text-muted-foreground">
+                                  {payload[0].name}
+                                </span>
+                                <span className="font-bold">
+                                  {formatCurrency(payload[0].value as number)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
             </TabsContent>
           </Tabs>
         </>
